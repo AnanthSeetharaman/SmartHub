@@ -13,7 +13,9 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       user-select: none;
       -webkit-user-select: none;
-      padding-bottom: 85px;
+      padding-bottom: 90px;
+      min-height: 100vh;
+      transition: background 0.3s ease;
     }
     .glass-card {
       background: rgba(22, 27, 34, 0.85);
@@ -47,18 +49,25 @@
     .active-nav {
       color: #00f0ff !important;
     }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between">
 
   <!-- TOP APP BAR -->
-  <header class="p-4 pt-4 pb-2 sticky top-0 z-50 bg-[#0a0c10]/95 border-b border-white/5">
+  <header class="p-4 pt-4 pb-2 sticky top-0 z-50 bg-[#0a0c10]/95 border-b border-white/5 backdrop-blur-md">
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-2">
         <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
         <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-1.5">
           <span>SMART HUB</span>
-          <span class="text-[9px] uppercase tracking-wider bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-800">Native APK</span>
+          <span class="text-[9px] uppercase tracking-wider bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-800">PRO</span>
         </h1>
       </div>
       <div class="flex items-center gap-2">
@@ -73,6 +82,25 @@
       <!-- Injected dynamically -->
     </div>
   </header>
+
+  <!-- LIVE IN-APP BROADCAST ALERT BANNER (TOP) -->
+  <div id="liveBroadcastBanner" class="hidden px-4 mt-2 transition-all duration-300">
+    <div class="glass-card p-3 border-amber-500/40 bg-amber-950/40 flex items-start justify-between shadow-lg">
+      <div class="flex items-start gap-2.5">
+        <i class="fa-solid fa-bullhorn text-amber-400 text-lg mt-0.5 animate-bounce"></i>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30" id="liveBcUrgency">ANNOUNCEMENT</span>
+            <span class="text-[10px] text-gray-400" id="liveBcTime">Just now</span>
+          </div>
+          <div class="text-xs font-bold text-white mt-1" id="liveBcText">Broadcast message here</div>
+        </div>
+      </div>
+      <button onclick="dismissBroadcastBanner()" class="text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+  </div>
 
   <!-- SCREEN OFF / AUDIO ONLY BANNER -->
   <div class="px-4 mt-3">
@@ -121,7 +149,6 @@
       <!-- Tactile D-Pad & Volume -->
       <div class="glass-card p-4 mb-4">
         <div class="flex items-center justify-between gap-4">
-          
           <div class="flex-1 max-w-[210px] mx-auto">
             <div class="grid grid-cols-3 gap-2">
               <div></div>
@@ -211,7 +238,145 @@
       </div>
     </div>
 
-    <!-- TAB 3: SOUND -->
+    <!-- TAB 3: WALLPAPERS & THEMES -->
+    <div id="tab-wallpaper" class="tab-content hidden">
+      <!-- Section A: App Themes -->
+      <div class="glass-card p-4 mb-4">
+        <h2 class="text-sm font-bold text-cyan-400 mb-1 flex items-center gap-1.5">
+          <i class="fa-solid fa-paintbrush"></i> SmartHub App Themes
+        </h2>
+        <p class="text-xs text-gray-400 mb-3">Customise the mobile controller aura.</p>
+
+        <div class="grid grid-cols-3 gap-2 mb-3">
+          <button onclick="setAppTheme('void')" class="p-2.5 rounded-xl border border-white/10 bg-[#0a0c10] text-center touch-btn">
+            <div class="w-4 h-4 rounded-full bg-cyan-400 mx-auto mb-1"></div>
+            <div class="text-[10px] font-bold text-white">Cyber Void</div>
+          </button>
+          <button onclick="setAppTheme('nebula')" class="p-2.5 rounded-xl border border-purple-500/30 bg-[#160d26] text-center touch-btn">
+            <div class="w-4 h-4 rounded-full bg-purple-400 mx-auto mb-1"></div>
+            <div class="text-[10px] font-bold text-white">Cosmic Nebula</div>
+          </button>
+          <button onclick="setAppTheme('matrix')" class="p-2.5 rounded-xl border border-emerald-500/30 bg-[#061e12] text-center touch-btn">
+            <div class="w-4 h-4 rounded-full bg-emerald-400 mx-auto mb-1"></div>
+            <div class="text-[10px] font-bold text-white">Emerald Matrix</div>
+          </button>
+          <button onclick="setAppTheme('sunset')" class="p-2.5 rounded-xl border border-orange-500/30 bg-[#2b0f14] text-center touch-btn">
+            <div class="w-4 h-4 rounded-full bg-amber-400 mx-auto mb-1"></div>
+            <div class="text-[10px] font-bold text-white">Sunset Glow</div>
+          </button>
+          <button onclick="setAppTheme('slate')" class="p-2.5 rounded-xl border border-sky-500/30 bg-[#0f172a] text-center touch-btn">
+            <div class="w-4 h-4 rounded-full bg-sky-400 mx-auto mb-1"></div>
+            <div class="text-[10px] font-bold text-white">Titanium Slate</div>
+          </button>
+          <button onclick="resetAppTheme()" class="p-2.5 rounded-xl border border-white/10 bg-white/5 text-center touch-btn">
+            <div class="w-4 h-4 rounded-full bg-gray-400 mx-auto mb-1"></div>
+            <div class="text-[10px] font-bold text-gray-300">Default Reset</div>
+          </button>
+        </div>
+
+        <div class="flex gap-2">
+          <input type="text" id="customAppBgInput" placeholder="Custom image URL for app..." class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+          <button onclick="applyCustomAppBg()" class="bg-cyan-600 text-white px-3 py-2 rounded-xl font-bold text-xs touch-btn">Apply</button>
+        </div>
+      </div>
+
+      <!-- Section B: TV Ambient Art & Phone Wallpaper -->
+      <div class="glass-card p-4 mb-4">
+        <h2 class="text-sm font-bold text-purple-400 mb-1 flex items-center gap-1.5">
+          <i class="fa-solid fa-tv"></i> Ambient TV Artwork & Wallpapers
+        </h2>
+        <p class="text-xs text-gray-400 mb-3">Cast 4K art to your TV or apply as phone wallpaper.</p>
+
+        <div class="space-y-3" id="wallpaperCardsContainer">
+          <!-- Populated dynamically from CURATED_WALLPAPERS -->
+        </div>
+
+        <!-- Custom TV Wallpaper input -->
+        <div class="mt-4 pt-3 border-t border-white/10">
+          <div class="text-xs font-semibold text-gray-300 mb-1.5">Custom Image URL</div>
+          <div class="flex gap-2">
+            <input type="text" id="customTvBgInput" placeholder="https://example.com/art.jpg" class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400">
+            <button onclick="castCustomWallpaper()" class="bg-purple-600 text-white px-3 py-2 rounded-xl font-bold text-xs touch-btn flex items-center gap-1">
+              <i class="fa-solid fa-cast"></i> Cast TV
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: BROADCAST -->
+    <div id="tab-broadcast" class="tab-content hidden">
+      <div class="glass-card p-4 mb-4">
+        <h2 class="text-sm font-bold text-amber-400 mb-1 flex items-center gap-1.5">
+          <i class="fa-solid fa-bullhorn"></i> Network Broadcast Center
+        </h2>
+        <p class="text-xs text-gray-400 mb-3">Broadcast announcements across TVs, mobiles & laptops.</p>
+
+        <!-- Target Selector -->
+        <div class="mb-3">
+          <div class="text-[11px] font-semibold text-gray-300 mb-1">Target Screens:</div>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setBroadcastTarget('all')" id="bcTarget-all" class="p-2 rounded-xl border border-cyan-500/40 bg-cyan-950/40 text-cyan-300 text-[10px] font-bold touch-btn">
+              🌐 All Screens
+            </button>
+            <button onclick="setBroadcastTarget('tv')" id="bcTarget-tv" class="p-2 rounded-xl border border-white/5 bg-white/5 text-gray-300 text-[10px] font-bold touch-btn">
+              📺 TVs Only
+            </button>
+            <button onclick="setBroadcastTarget('mobiles')" id="bcTarget-mobiles" class="p-2 rounded-xl border border-white/5 bg-white/5 text-gray-300 text-[10px] font-bold touch-btn">
+              📱 Mobiles
+            </button>
+          </div>
+        </div>
+
+        <!-- Urgency Selector -->
+        <div class="mb-3">
+          <div class="text-[11px] font-semibold text-gray-300 mb-1">Notification Priority:</div>
+          <div class="flex gap-2">
+            <button onclick="setBroadcastUrgency('normal')" id="bcUrg-normal" class="flex-1 py-1.5 rounded-xl border border-cyan-500/40 bg-cyan-950/40 text-cyan-300 text-[10px] font-bold touch-btn">
+              ℹ️ Normal Info
+            </button>
+            <button onclick="setBroadcastUrgency('urgent')" id="bcUrg-urgent" class="flex-1 py-1.5 rounded-xl border border-white/5 bg-white/5 text-gray-300 text-[10px] font-bold touch-btn">
+              🚨 Urgent Alert
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="mb-3">
+          <div class="text-[11px] font-semibold text-gray-300 mb-1.5">Quick Presets:</div>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setBroadcastPreset('Dinner is ready! 🍲')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-200 touch-btn">🍲 Dinner ready</button>
+            <button onclick="setBroadcastPreset('Movie starting in 5 mins! 🎬')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-200 touch-btn">🎬 Movie starting</button>
+            <button onclick="setBroadcastPreset('Please lower the TV volume 🔉')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-200 touch-btn">🔉 Lower volume</button>
+            <button onclick="setBroadcastPreset('Meeting in progress — quiet please 🤫')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-200 touch-btn">🤫 Meeting mode</button>
+            <button onclick="setBroadcastPreset('Someone is at the door 🚪')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-200 touch-btn">🚪 Doorbell</button>
+            <button onclick="setBroadcastPreset('Tea / Coffee break! ☕')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-200 touch-btn">☕ Tea break</button>
+          </div>
+        </div>
+
+        <!-- Custom Composer -->
+        <div class="mb-3">
+          <input type="text" id="bcInput" placeholder="Type announcement or alert..." class="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
+        </div>
+
+        <button onclick="dispatchBroadcast()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-extrabold py-3 rounded-xl text-xs touch-btn flex items-center justify-center gap-2 shadow-lg shadow-amber-900/30">
+          <i class="fa-solid fa-paper-plane"></i> Send Network Broadcast
+        </button>
+      </div>
+
+      <!-- Recent History Feed -->
+      <div class="glass-card p-4 mb-4">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Broadcast History</h3>
+          <button onclick="clearBroadcasts()" class="text-[10px] text-red-400 hover:underline">Clear History</button>
+        </div>
+        <div id="broadcastHistoryList" class="space-y-2 text-xs">
+          <div class="text-gray-500 text-[11px] text-center py-2">No broadcasts yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: SOUND -->
     <div id="tab-sound" class="tab-content hidden">
       <div class="glass-card p-4 mb-4">
         <h2 class="text-sm font-bold text-emerald-400 mb-1">Speaker Equalizer Profiles</h2>
@@ -234,7 +399,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: DEVICES -->
+    <!-- TAB 6: DEVICES -->
     <div id="tab-devices" class="tab-content hidden">
       <div class="glass-card p-4 mb-4">
         <h2 class="text-sm font-bold text-white mb-2">Connected Network Devices</h2>
@@ -244,27 +409,37 @@
 
   </main>
 
-  <!-- BOTTOM NAVIGATION BAR -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-[#0a0c10]/95 backdrop-blur-lg border-t border-white/10 px-4 py-2.5 z-50">
+  <!-- BOTTOM NAVIGATION BAR (6 TABS) -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#0a0c10]/95 backdrop-blur-lg border-t border-white/10 px-2 py-2 z-50">
     <div class="flex justify-around items-center max-w-md mx-auto">
-      <button onclick="switchTab('remote')" id="nav-remote" class="flex flex-col items-center text-xs text-gray-400 active-nav touch-btn">
-        <i class="fa-solid fa-gamepad text-lg mb-1"></i>
-        <span class="text-[10px] font-semibold">Remote</span>
+      <button onclick="switchTab('remote')" id="nav-remote" class="flex flex-col items-center text-xs text-gray-400 active-nav touch-btn py-1 px-1.5">
+        <i class="fa-solid fa-gamepad text-base mb-0.5"></i>
+        <span class="text-[9px] font-semibold">Remote</span>
       </button>
 
-      <button onclick="switchTab('media')" id="nav-media" class="flex flex-col items-center text-xs text-gray-400 touch-btn">
-        <i class="fa-brands fa-youtube text-lg mb-1"></i>
-        <span class="text-[10px] font-semibold">YouTube</span>
+      <button onclick="switchTab('media')" id="nav-media" class="flex flex-col items-center text-xs text-gray-400 touch-btn py-1 px-1.5">
+        <i class="fa-brands fa-youtube text-base mb-0.5"></i>
+        <span class="text-[9px] font-semibold">YouTube</span>
       </button>
 
-      <button onclick="switchTab('sound')" id="nav-sound" class="flex flex-col items-center text-xs text-gray-400 touch-btn">
-        <i class="fa-solid fa-sliders text-lg mb-1"></i>
-        <span class="text-[10px] font-semibold">Sound</span>
+      <button onclick="switchTab('wallpaper')" id="nav-wallpaper" class="flex flex-col items-center text-xs text-gray-400 touch-btn py-1 px-1.5">
+        <i class="fa-solid fa-palette text-base mb-0.5"></i>
+        <span class="text-[9px] font-semibold">Wallpaper</span>
       </button>
 
-      <button onclick="switchTab('devices')" id="nav-devices" class="flex flex-col items-center text-xs text-gray-400 touch-btn">
-        <i class="fa-solid fa-network-wired text-lg mb-1"></i>
-        <span class="text-[10px] font-semibold">Devices</span>
+      <button onclick="switchTab('broadcast')" id="nav-broadcast" class="flex flex-col items-center text-xs text-gray-400 touch-btn py-1 px-1.5">
+        <i class="fa-solid fa-bullhorn text-base mb-0.5"></i>
+        <span class="text-[9px] font-semibold">Broadcast</span>
+      </button>
+
+      <button onclick="switchTab('sound')" id="nav-sound" class="flex flex-col items-center text-xs text-gray-400 touch-btn py-1 px-1.5">
+        <i class="fa-solid fa-sliders text-base mb-0.5"></i>
+        <span class="text-[9px] font-semibold">Sound</span>
+      </button>
+
+      <button onclick="switchTab('devices')" id="nav-devices" class="flex flex-col items-center text-xs text-gray-400 touch-btn py-1 px-1.5">
+        <i class="fa-solid fa-network-wired text-base mb-0.5"></i>
+        <span class="text-[9px] font-semibold">Devices</span>
       </button>
     </div>
   </nav>
@@ -279,12 +454,63 @@
     ];
     let selectedDevice = devices[0];
 
+    const CURATED_WALLPAPERS = [
+      {
+        id: "cosmic-jwst",
+        title: "Cosmic Deep Space (JWST)",
+        subtitle: "Carina Nebula 4K",
+        category: "Astronomy",
+        url: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=85&w=2560&auto=format&fit=crop",
+        thumb: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=400&auto=format&fit=crop"
+      },
+      {
+        id: "panchaloha-sacred",
+        title: "Sacred Panchaloha Temple Bronze",
+        subtitle: "Chola sacred iconographic art",
+        category: "Heritage",
+        url: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=85&w=2560&auto=format&fit=crop",
+        thumb: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=400&auto=format&fit=crop"
+      },
+      {
+        id: "cyberpunk-rain",
+        title: "Neo Tokyo Cyber Rain",
+        subtitle: "Neon rain reflections at midnight",
+        category: "Cyberpunk",
+        url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?q=85&w=2560&auto=format&fit=crop",
+        thumb: "https://images.unsplash.com/photo-1514565131-fce0801e5785?q=80&w=400&auto=format&fit=crop"
+      },
+      {
+        id: "minimal-aurora",
+        title: "Alpine Aurora Borealis",
+        subtitle: "Northern lights above snowy peaks",
+        category: "Nature",
+        url: "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=85&w=2560&auto=format&fit=crop",
+        thumb: "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=400&auto=format&fit=crop"
+      },
+      {
+        id: "lofi-cozy",
+        title: "Cozy Lo-Fi Study Room",
+        subtitle: "Warm amber glow with rain",
+        category: "Aesthetic",
+        url: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=85&w=2560&auto=format&fit=crop",
+        thumb: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=400&auto=format&fit=crop"
+      },
+      {
+        id: "ocean-biolum",
+        title: "Deep Bioluminescent Abyss",
+        subtitle: "Glowing jellyfish in deep waters",
+        category: "Nature",
+        url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=85&w=2560&auto=format&fit=crop",
+        thumb: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=400&auto=format&fit=crop"
+      }
+    ];
+
     async function getHubHost() {
       const candidates = ["http://127.0.0.1:8088", "http://192.168.1.8:8088"];
       for (const h of candidates) {
         try {
           const controller = new AbortController();
-          const t = setTimeout(() => controller.abort(), 800);
+          const t = setTimeout(() => controller.abort(), 600);
           const r = await fetch(`${h}/api/devices`, { signal: controller.signal });
           clearTimeout(t);
           if (r.ok) {
@@ -337,7 +563,7 @@
 
     function vibrate(ms = 25) {
       if (window.Android && window.Android.vibrate) {
-        window.Android.vibrate(ms);
+        window.Android.vibrate(Array.isArray(ms) ? ms[0] : ms);
       } else if (navigator.vibrate) {
         navigator.vibrate(ms);
       }
@@ -349,8 +575,28 @@
       }
     }
 
+    function playChime() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } catch(e) {}
+    }
+
     function renderDeviceCarousel() {
       const el = document.getElementById("deviceList");
+      if (!el) return;
       el.innerHTML = "";
       devices.forEach(d => {
         const isSel = selectedDevice.ip === d.ip;
@@ -478,7 +724,8 @@
         toast("Streaming to TV...");
       } else {
         try {
-          await fetch(`${HUB_HOST}/api/youtube/play`, {
+          const host = await getHubHost();
+          await fetch(`${host}/api/youtube/play`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ip: selectedDevice.ip, video_url: val })
@@ -499,7 +746,8 @@
         window.Android.sendDialStop(selectedDevice.ip, 8080);
       } else {
         try {
-          await fetch(`${HUB_HOST}/api/youtube/stop`, {
+          const host = await getHubHost();
+          await fetch(`${host}/api/youtube/stop`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ip: selectedDevice.ip })
@@ -509,16 +757,287 @@
       toast("Stopped playback");
     }
 
+    // --- WALLPAPERS & THEMES LOGIC ---
+    const THEMES = {
+      void: "radial-gradient(circle at top, #141c2b, #0a0c10)",
+      nebula: "radial-gradient(circle at top, #26113b, #0b0414)",
+      matrix: "radial-gradient(circle at top, #092c1c, #03120a)",
+      sunset: "radial-gradient(circle at top, #3b141a, #120407)",
+      slate: "radial-gradient(circle at top, #1e293b, #0f172a)"
+    };
+
+    function setAppTheme(themeName) {
+      vibrate();
+      const bg = THEMES[themeName];
+      if (bg) {
+        document.body.style.background = bg;
+        localStorage.setItem("smarthub_theme", themeName);
+        toast(`Theme applied: ${themeName.toUpperCase()}`);
+      }
+    }
+
+    function resetAppTheme() {
+      vibrate();
+      document.body.style.background = "#0a0c10";
+      localStorage.removeItem("smarthub_theme");
+      localStorage.removeItem("smarthub_custom_bg");
+      toast("Theme reset to Default");
+    }
+
+    function applyCustomAppBg() {
+      vibrate();
+      const url = document.getElementById("customAppBgInput").value.trim();
+      if (!url) return;
+      document.body.style.backgroundImage = `linear-gradient(rgba(10,12,16,0.85), rgba(10,12,16,0.92)), url('${url}')`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundAttachment = "fixed";
+      localStorage.setItem("smarthub_custom_bg", url);
+      toast("Custom background applied!");
+    }
+
+    function renderWallpaperCards() {
+      const container = document.getElementById("wallpaperCardsContainer");
+      if (!container) return;
+      container.innerHTML = CURATED_WALLPAPERS.map(w => `
+        <div class="glass-card overflow-hidden flex flex-col border-white/10">
+          <div class="h-28 w-full bg-cover bg-center relative" style="background-image: url('${w.thumb}')">
+            <span class="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-[9px] font-bold text-cyan-300 px-2 py-0.5 rounded-full border border-white/10">
+              ${w.category}
+            </span>
+          </div>
+          <div class="p-3 flex justify-between items-center">
+            <div>
+              <div class="text-xs font-bold text-white">${w.title}</div>
+              <div class="text-[10px] text-gray-400">${w.subtitle}</div>
+            </div>
+            <div class="flex gap-1.5">
+              <button onclick="setPhoneWallpaper('${w.url}')" class="px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-cyan-300 text-[10px] font-bold touch-btn flex items-center gap-1">
+                <i class="fa-solid fa-mobile-screen"></i> Phone
+              </button>
+              <button onclick="castWallpaper('${w.url}', '${w.title}')" class="px-2.5 py-1.5 rounded-lg bg-purple-600 text-white text-[10px] font-bold touch-btn flex items-center gap-1">
+                <i class="fa-solid fa-tv"></i> Cast TV
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function setPhoneWallpaper(url) {
+      vibrate();
+      if (window.Android && window.Android.setDeviceWallpaper) {
+        toast("Downloading and setting phone wallpaper...");
+        window.Android.setDeviceWallpaper(url);
+      } else {
+        toast("Phone wallpaper setting requires Android APK.");
+      }
+    }
+
+    async function castWallpaper(url, title = "Ambient Artwork") {
+      vibrate();
+      try {
+        const host = await getHubHost();
+        const r = await fetch(`${host}/api/wallpaper/cast`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ip: selectedDevice.ip,
+            port: selectedDevice.port || 8001,
+            wallpaper_url: url,
+            title: title
+          })
+        });
+        const res = await r.json();
+        toast(res.message || "Wallpaper cast sent!");
+      } catch(e) {
+        toast("Wallpaper cast dispatched");
+      }
+    }
+
+    function castCustomWallpaper() {
+      const url = document.getElementById("customTvBgInput").value.trim();
+      if (!url) return;
+      castWallpaper(url, "Custom Wallpaper");
+    }
+
+    // --- BROADCAST CENTER LOGIC ---
+    let currentBroadcastTarget = "all";
+    let currentBroadcastUrgency = "normal";
+
+    function setBroadcastTarget(target) {
+      vibrate();
+      currentBroadcastTarget = target;
+      ["all", "tv", "mobiles"].forEach(t => {
+        const btn = document.getElementById(`bcTarget-${t}`);
+        if (t === target) {
+          btn.className = "p-2 rounded-xl border border-cyan-500/40 bg-cyan-950/40 text-cyan-300 text-[10px] font-bold touch-btn";
+        } else {
+          btn.className = "p-2 rounded-xl border border-white/5 bg-white/5 text-gray-300 text-[10px] font-bold touch-btn";
+        }
+      });
+    }
+
+    function setBroadcastUrgency(urgency) {
+      vibrate();
+      currentBroadcastUrgency = urgency;
+      const normBtn = document.getElementById("bcUrg-normal");
+      const urgBtn = document.getElementById("bcUrg-urgent");
+      if (urgency === "urgent") {
+        urgBtn.className = "flex-1 py-1.5 rounded-xl border border-red-500/50 bg-red-950/40 text-red-300 text-[10px] font-bold touch-btn";
+        normBtn.className = "flex-1 py-1.5 rounded-xl border border-white/5 bg-white/5 text-gray-300 text-[10px] font-bold touch-btn";
+      } else {
+        normBtn.className = "flex-1 py-1.5 rounded-xl border border-cyan-500/40 bg-cyan-950/40 text-cyan-300 text-[10px] font-bold touch-btn";
+        urgBtn.className = "flex-1 py-1.5 rounded-xl border border-white/5 bg-white/5 text-gray-300 text-[10px] font-bold touch-btn";
+      }
+    }
+
+    function setBroadcastPreset(text) {
+      document.getElementById("bcInput").value = text;
+      vibrate();
+    }
+
+    async function dispatchBroadcast() {
+      vibrate(40);
+      const text = document.getElementById("bcInput").value.trim();
+      if (!text) {
+        toast("Please enter a broadcast message.");
+        return;
+      }
+
+      playChime();
+
+      try {
+        const host = await getHubHost();
+        const r = await fetch(`${host}/api/broadcast`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: currentBroadcastUrgency === "urgent" ? "🚨 URGENT BROADCAST" : "📢 SmartHub Broadcast",
+            message: text,
+            sender: "SmartHub Mobile",
+            target: currentBroadcastTarget,
+            urgency: currentBroadcastUrgency
+          })
+        });
+        const res = await r.json();
+        if (res.status === "ok") {
+          toast("Broadcast dispatched across network!");
+          document.getElementById("bcInput").value = "";
+          fetchBroadcastHistory();
+        }
+      } catch(e) {
+        toast("Broadcast dispatched!");
+      }
+    }
+
+    let lastSeenBroadcastId = localStorage.getItem("smarthub_last_bc_id") || null;
+
+    async function fetchBroadcastHistory() {
+      try {
+        const host = await getHubHost();
+        const r = await fetch(`${host}/api/broadcast/recent`);
+        const data = await r.json();
+        if (data && Array.isArray(data)) {
+          renderBroadcastHistory(data);
+
+          if (data.length > 0) {
+            const latest = data[0];
+            if (latest.id !== lastSeenBroadcastId) {
+              lastSeenBroadcastId = latest.id;
+              localStorage.setItem("smarthub_last_bc_id", latest.id);
+              triggerInAppBroadcastAlert(latest);
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
+    function renderBroadcastHistory(items) {
+      const el = document.getElementById("broadcastHistoryList");
+      if (!el) return;
+      if (!items || items.length === 0) {
+        el.innerHTML = `<div class="text-gray-500 text-[11px] text-center py-2">No broadcasts yet.</div>`;
+        return;
+      }
+
+      el.innerHTML = items.map(item => `
+        <div class="glass-card p-2.5 flex justify-between items-start border-white/5">
+          <div>
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                item.urgency === 'urgent' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-cyan-950 text-cyan-400 border border-cyan-800'
+              }">${item.urgency.toUpperCase()}</span>
+              <span class="text-[10px] text-gray-400">${item.timestamp}</span>
+              <span class="text-[10px] text-gray-500">• ${item.target.toUpperCase()}</span>
+            </div>
+            <div class="text-xs text-white font-medium">${item.message}</div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function triggerInAppBroadcastAlert(item) {
+      playChime();
+      vibrate([100, 50, 100]);
+
+      if (window.Android && window.Android.showNotification) {
+        window.Android.showNotification(item.title || "SmartHub Broadcast", item.message);
+      }
+
+      const banner = document.getElementById("liveBroadcastBanner");
+      const txt = document.getElementById("liveBcText");
+      const urg = document.getElementById("liveBcUrgency");
+      const time = document.getElementById("liveBcTime");
+
+      if (banner && txt) {
+        txt.textContent = item.message;
+        urg.textContent = item.urgency.toUpperCase();
+        time.textContent = item.timestamp || "Just now";
+        banner.classList.remove("hidden");
+      }
+    }
+
+    function dismissBroadcastBanner() {
+      const banner = document.getElementById("liveBroadcastBanner");
+      if (banner) banner.classList.add("hidden");
+    }
+
+    async function clearBroadcasts() {
+      vibrate();
+      try {
+        const host = await getHubHost();
+        await fetch(`${host}/api/broadcast/clear`, { method: "DELETE" });
+        fetchBroadcastHistory();
+        toast("Broadcast history cleared.");
+      } catch(e) {}
+    }
+
     function switchTab(t) {
       vibrate();
       document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
       document.querySelectorAll("nav button").forEach(el => el.classList.remove("active-nav"));
-      document.getElementById(`tab-${t}`).classList.remove("hidden");
-      document.getElementById(`nav-${t}`).classList.add("active-nav");
+      const tabEl = document.getElementById(`tab-${t}`);
+      const navEl = document.getElementById(`nav-${t}`);
+      if (tabEl) tabEl.classList.remove("hidden");
+      if (navEl) navEl.classList.add("active-nav");
+    }
+
+    // --- INITIALIZATION ---
+    const savedTheme = localStorage.getItem("smarthub_theme");
+    const savedCustomBg = localStorage.getItem("smarthub_custom_bg");
+    if (savedCustomBg) {
+      document.body.style.backgroundImage = `linear-gradient(rgba(10,12,16,0.85), rgba(10,12,16,0.92)), url('${savedCustomBg}')`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundAttachment = "fixed";
+    } else if (savedTheme && THEMES[savedTheme]) {
+      document.body.style.background = THEMES[savedTheme];
     }
 
     renderDeviceCarousel();
+    renderWallpaperCards();
     scanNetwork();
+    fetchBroadcastHistory();
+    setInterval(fetchBroadcastHistory, 3500);
   </script>
 </body>
 </html>
