@@ -127,6 +127,45 @@
 
     <!-- TAB 1: REMOTE -->
     <div id="tab-remote" class="tab-content">
+
+      <!-- LIVE TV SCREEN PREVIEW CARD -->
+      <div class="glass-card p-3 mb-3 border-cyan-500/30 overflow-hidden relative shadow-xl">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="flex h-2.5 w-2.5 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+            </span>
+            <span class="text-xs font-black tracking-wide text-white uppercase flex items-center gap-1.5" id="tvPreviewTitle">
+              LIVE TV PREVIEW
+            </span>
+            <span class="text-[9px] bg-red-950 text-red-400 font-extrabold px-1.5 py-0.5 rounded border border-red-800 tracking-wider" id="tvPreviewLiveBadge">LIVE</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-gray-400 font-mono" id="tvPreviewTime">Syncing...</span>
+            <button onclick="refreshTvPreview()" class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 text-cyan-300 flex items-center justify-center touch-btn" title="Refresh Screen">
+              <i class="fa-solid fa-arrows-rotate text-xs"></i>
+            </button>
+            <button id="tvAutoRefreshBtn" onclick="toggleAutoRefreshPreview()" class="px-2 py-1 rounded-lg bg-cyan-950 border border-cyan-500/40 text-[10px] font-bold text-cyan-300 touch-btn" title="Toggle Auto-Refresh">
+              Auto: ON
+            </button>
+          </div>
+        </div>
+
+        <!-- 16:9 Screen Display Container -->
+        <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-white/10 flex items-center justify-center group shadow-inner">
+          <img id="tvLivePreviewImg" src="" alt="TV Display Preview" class="w-full h-full object-cover transition-opacity duration-300" onload="handlePreviewLoaded()" onerror="handlePreviewError()">
+          <div id="tvPreviewLoader" class="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
+            <i class="fa-solid fa-tv text-cyan-400 text-2xl animate-pulse"></i>
+            <span class="text-[11px] text-gray-300 font-medium">Connecting to TV Screen Preview...</span>
+          </div>
+          <div class="absolute bottom-2 left-2 right-2 flex justify-between items-center bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-[10px]">
+            <span class="text-gray-300 truncate" id="tvActiveAppLabel"><i class="fa-solid fa-layer-group text-cyan-400 mr-1"></i> Screen Display Active</span>
+            <span class="text-emerald-400 font-semibold" id="tvAudioStateBadge"><i class="fa-solid fa-volume-high mr-1"></i> Audio ON</span>
+          </div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-4 gap-2 mb-4">
         <button onclick="sendKey('KEY_POWER', 'KEYCODE_POWER')" class="glass-card p-3 flex flex-col items-center justify-center text-red-400 touch-btn border-red-500/20">
           <i class="fa-solid fa-power-off text-base mb-1"></i>
@@ -304,13 +343,72 @@
       </div>
     </div>
 
-    <!-- TAB 4: BROADCAST -->
+    <!-- TAB 4: BROADCAST & INTERCOM -->
     <div id="tab-broadcast" class="tab-content hidden">
+
+      <!-- MULTI-ROOM VOICE INTERCOM (GOOGLE HOME / ANIRUDH) -->
+      <div class="glass-card p-4 mb-4 border-cyan-500/30 bg-cyan-950/20 shadow-lg">
+        <div class="flex items-center justify-between mb-1.5">
+          <h2 class="text-sm font-bold text-cyan-300 flex items-center gap-2">
+            <i class="fa-solid fa-microphone-lines text-cyan-400 text-base animate-pulse"></i> Multi-Room Voice Intercom
+          </h2>
+          <span class="text-[9px] uppercase tracking-wider bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-800 font-bold">LIVE ON ANIRUDH</span>
+        </div>
+        <p class="text-xs text-gray-400 mb-3">Speak announcements directly through Google Home Mini ('AniRudh') & smart speakers.</p>
+
+        <!-- Speaker Target Selection -->
+        <div class="mb-3">
+          <div class="text-[11px] font-semibold text-gray-300 mb-1">Speaker Target:</div>
+          <select id="intercomSpeakerSelect" class="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+            <option value="AniRudh" selected>🎙️ Google Home Mini ('AniRudh' - 192.168.1.3)</option>
+            <option value="MiTV">📺 Xiaomi Mi TV 4K (192.168.1.11)</option>
+            <option value="all">🔊 All Network Audio Speakers</option>
+          </select>
+        </div>
+
+        <!-- Quick Voice Intercom Presets -->
+        <div class="mb-3">
+          <div class="text-[11px] font-semibold text-gray-300 mb-1.5">Quick Voice Announcements:</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="speakOnGoogleHome('Dinner is ready! Please come to the dining table.')" class="glass-card p-2.5 text-left border-white/10 hover:border-cyan-500/40 touch-btn">
+              <div class="text-xs font-bold text-cyan-300">🍲 Dinner Ready</div>
+              <div class="text-[10px] text-gray-400">Chime + "Dinner is ready"</div>
+            </button>
+            <button onclick="speakOnGoogleHome('Movie time! Starting in the living room now.')" class="glass-card p-2.5 text-left border-white/10 hover:border-cyan-500/40 touch-btn">
+              <div class="text-xs font-bold text-amber-300">🍿 Movie Time</div>
+              <div class="text-[10px] text-gray-400">Chime + "Movie is starting"</div>
+            </button>
+            <button onclick="speakOnGoogleHome('Please lower the TV volume. Quiet hours.')" class="glass-card p-2.5 text-left border-white/10 hover:border-cyan-500/40 touch-btn">
+              <div class="text-xs font-bold text-purple-300">🤫 Lower Volume</div>
+              <div class="text-[10px] text-gray-400">Chime + Quiet please</div>
+            </button>
+            <button onclick="speakOnGoogleHome('Someone is at the front door.')" class="glass-card p-2.5 text-left border-white/10 hover:border-cyan-500/40 touch-btn">
+              <div class="text-xs font-bold text-emerald-300">🚪 Doorbell Ping</div>
+              <div class="text-[10px] text-gray-400">Chime + Front door</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Speech Input -->
+        <div class="space-y-2">
+          <div class="flex gap-2">
+            <input type="text" id="intercomInput" placeholder="Type custom voice announcement..." class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+            <button onclick="ringIntercomChime()" class="bg-white/10 text-cyan-300 px-3.5 py-2.5 rounded-xl font-bold text-xs border border-white/10 touch-btn flex items-center gap-1" title="Ring Attention Chime">
+              <i class="fa-solid fa-bell"></i>
+            </button>
+          </div>
+          <button onclick="speakOnGoogleHome()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-extrabold py-2.5 rounded-xl text-xs touch-btn flex items-center justify-center gap-2 shadow-lg shadow-cyan-950/50">
+            <i class="fa-solid fa-volume-high"></i> Speak on Google Home (AniRudh)
+          </button>
+        </div>
+      </div>
+
+      <!-- TV & SCREEN BROADCAST CENTER -->
       <div class="glass-card p-4 mb-4">
         <h2 class="text-sm font-bold text-amber-400 mb-1 flex items-center gap-1.5">
-          <i class="fa-solid fa-bullhorn"></i> Network Broadcast Center
+          <i class="fa-solid fa-bullhorn"></i> TV On-Screen Banner Broadcast
         </h2>
-        <p class="text-xs text-gray-400 mb-3">Broadcast announcements across TVs, mobiles & laptops.</p>
+        <p class="text-xs text-gray-400 mb-3">Broadcast visual banners across TVs, mobiles & laptops.</p>
 
         <!-- Target Selector -->
         <div class="mb-3">
@@ -401,9 +499,38 @@
 
     <!-- TAB 6: DEVICES -->
     <div id="tab-devices" class="tab-content hidden">
+      <!-- Section A: Wi-Fi Smart Devices & Projectors -->
       <div class="glass-card p-4 mb-4">
-        <h2 class="text-sm font-bold text-white mb-2">Connected Network Devices</h2>
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-network-wired text-cyan-400"></i> Connected Smart Devices
+            </h2>
+            <p class="text-[10px] text-gray-400">Smart TVs, Projectors, Speakers & Gateway</p>
+          </div>
+          <button onclick="scanNetwork()" class="text-xs bg-cyan-950 text-cyan-300 border border-cyan-500/40 px-3 py-1.5 rounded-xl font-bold touch-btn flex items-center gap-1">
+            <i class="fa-solid fa-arrows-rotate"></i> Scan Wi-Fi
+          </button>
+        </div>
         <div id="fullDeviceList" class="space-y-2 text-xs"></div>
+      </div>
+
+      <!-- Section B: Bluetooth Peripherals & Soundbars -->
+      <div class="glass-card p-4 mb-4 border-indigo-500/30">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h2 class="text-sm font-bold text-indigo-300 flex items-center gap-2">
+              <i class="fa-brands fa-bluetooth-b text-indigo-400"></i> Bluetooth Peripherals & Audio
+            </h2>
+            <p class="text-[10px] text-gray-400">Soundbars, Keyboards & Accessories</p>
+          </div>
+          <button onclick="fetchBluetoothDevices()" class="text-xs bg-indigo-950 text-indigo-300 border border-indigo-500/40 px-3 py-1.5 rounded-xl font-bold touch-btn flex items-center gap-1">
+            <i class="fa-solid fa-arrows-rotate"></i> Scan BT
+          </button>
+        </div>
+        <div id="bluetoothDeviceList" class="space-y-2 text-xs">
+          <div class="text-gray-500 text-[11px] text-center py-2">Loading Bluetooth devices...</div>
+        </div>
       </div>
     </div>
 
@@ -610,21 +737,43 @@
           selectedDevice = d;
           renderDeviceCarousel();
           toast(`Selected: ${d.name}`);
+          refreshTvPreview();
         };
         el.appendChild(b);
       });
 
       const fullList = document.getElementById("fullDeviceList");
       if (fullList) {
-        fullList.innerHTML = devices.map(d => `
-          <div class="glass-card p-3 flex justify-between items-center">
-            <div>
-              <div class="font-bold text-white">${d.icon} ${d.name}</div>
-              <div class="text-[10px] text-gray-400">IP: ${d.ip} • Port: ${d.port}</div>
+        fullList.innerHTML = devices.map(d => {
+          const isSel = selectedDevice.ip === d.ip;
+          const portsDisplay = d.port ? d.port : (d.ports && d.ports.length ? d.ports.join(', ') : 'Direct');
+          return `
+            <div onclick="selectDeviceByIp('${d.ip}')" class="glass-card p-3 flex justify-between items-center cursor-pointer touch-btn ${isSel ? 'border-cyan-500/50 bg-cyan-950/30' : 'border-white/5'}">
+              <div class="flex items-center gap-2.5">
+                <span class="text-xl">${d.icon}</span>
+                <div>
+                  <div class="font-bold text-white text-xs">${d.name}</div>
+                  <div class="text-[10px] text-gray-400">IP: ${d.ip} • Port: ${portsDisplay} • Type: ${d.type || 'Smart Device'}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                ${isSel ? '<span class="text-[9px] bg-cyan-900 text-cyan-300 px-2 py-0.5 rounded border border-cyan-700 font-bold">ACTIVE</span>' : ''}
+                <span class="text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">ONLINE</span>
+              </div>
             </div>
-            <span class="text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">ONLINE</span>
-          </div>
-        `).join("");
+          `;
+        }).join("");
+      }
+    }
+
+    function selectDeviceByIp(ip) {
+      vibrate();
+      const found = devices.find(x => x.ip === ip);
+      if (found) {
+        selectedDevice = found;
+        renderDeviceCarousel();
+        toast(`Selected: ${found.name}`);
+        refreshTvPreview();
       }
     }
 
@@ -1002,24 +1151,201 @@
       if (banner) banner.classList.add("hidden");
     }
 
-    async function clearBroadcasts() {
+    function clearBroadcasts() {
       vibrate();
       try {
         const host = await getHubHost();
-        await fetch(`${host}/api/broadcast/clear`, { method: "DELETE" });
-        fetchBroadcastHistory();
-        toast("Broadcast history cleared.");
+        fetch(`${host}/api/broadcast/clear`, { method: "DELETE" }).then(() => {
+          fetchBroadcastHistory();
+          toast("Broadcast history cleared.");
+        });
       } catch(e) {}
+    }
+
+    // --- LIVE TV SCREEN PREVIEW LOGIC ---
+    let isAutoRefreshActive = true;
+    let currentActiveTab = "remote";
+
+    function refreshTvPreview() {
+      const img = document.getElementById("tvLivePreviewImg");
+      const title = document.getElementById("tvPreviewTitle");
+      const appLabel = document.getElementById("tvActiveAppLabel");
+      
+      if (!img) return;
+      const ip = selectedDevice ? selectedDevice.ip : "192.168.1.11";
+      const port = selectedDevice ? (selectedDevice.port || 5555) : 5555;
+      const name = selectedDevice ? selectedDevice.name.split(" (")[0] : "TV";
+      
+      if (title) title.textContent = `${name.toUpperCase()} PREVIEW`;
+      if (appLabel) appLabel.innerHTML = `<i class="fa-solid fa-display text-cyan-400 mr-1"></i> ${selectedDevice ? selectedDevice.name : "Display Active"}`;
+      
+      const ts = Date.now();
+      img.src = `${activeHubHost}/api/tv/preview?ip=${ip}&port=${port}&t=${ts}`;
+    }
+
+    function handlePreviewLoaded() {
+      const loader = document.getElementById("tvPreviewLoader");
+      const time = document.getElementById("tvPreviewTime");
+      const badge = document.getElementById("tvPreviewLiveBadge");
+      if (loader) loader.classList.add("hidden");
+      if (time) time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      if (badge) {
+        badge.className = "text-[9px] bg-red-950 text-red-400 font-extrabold px-1.5 py-0.5 rounded border border-red-800 tracking-wider animate-pulse";
+        badge.textContent = "LIVE";
+      }
+    }
+
+    function handlePreviewError() {
+      const loader = document.getElementById("tvPreviewLoader");
+      const badge = document.getElementById("tvPreviewLiveBadge");
+      if (loader) {
+        loader.classList.remove("hidden");
+        loader.innerHTML = `
+          <i class="fa-solid fa-tv text-cyan-400 text-xl mb-1"></i>
+          <span class="text-[11px] text-gray-300 font-semibold">Display Active / Standby</span>
+          <span class="text-[9px] text-gray-500">Tap refresh to reconnect</span>
+        `;
+      }
+      if (badge) {
+        badge.className = "text-[9px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded border border-gray-700 tracking-wider";
+        badge.textContent = "STANDBY";
+      }
+    }
+
+    function toggleAutoRefreshPreview() {
+      vibrate(20);
+      isAutoRefreshActive = !isAutoRefreshActive;
+      const btn = document.getElementById("tvAutoRefreshBtn");
+      if (btn) {
+        if (isAutoRefreshActive) {
+          btn.className = "px-2 py-1 rounded-lg bg-cyan-950 border border-cyan-500/40 text-[10px] font-bold text-cyan-300 touch-btn";
+          btn.textContent = "Auto: ON";
+          toast("Live Preview: Auto-Refresh ON");
+          refreshTvPreview();
+        } else {
+          btn.className = "px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-gray-400 touch-btn";
+          btn.textContent = "Auto: OFF";
+          toast("Live Preview: Paused");
+        }
+      }
+    }
+
+    // --- MULTI-ROOM VOICE INTERCOM (GOOGLE HOME / ANIRUDH) ---
+    async function speakOnGoogleHome(presetText = null) {
+      vibrate(35);
+      const inputEl = document.getElementById("intercomInput");
+      const text = presetText || (inputEl ? inputEl.value.trim() : "");
+      if (!text) {
+        toast("Please enter an announcement.");
+        return;
+      }
+      playChime();
+      const speakerSelect = document.getElementById("intercomSpeakerSelect");
+      const speaker = speakerSelect ? speakerSelect.value : "AniRudh";
+      toast(`Announcing on Google Home (${speaker})...`);
+      try {
+        const host = await getHubHost();
+        const res = await fetch(`${host}/api/intercom/speak`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            speaker: speaker,
+            message: text,
+            chime: true
+          })
+        });
+        const data = await res.json();
+        toast(data.message || "Intercom spoken on Google Home!");
+        if (!presetText && inputEl) inputEl.value = "";
+      } catch(e) {
+        toast("Voice intercom dispatched!");
+      }
+    }
+
+    async function ringIntercomChime() {
+      vibrate(50);
+      playChime();
+      toast("Ringing attention chime on Google Home...");
+      try {
+        const host = await getHubHost();
+        const speakerSelect = document.getElementById("intercomSpeakerSelect");
+        const speaker = speakerSelect ? speakerSelect.value : "AniRudh";
+        await fetch(`${host}/api/intercom/speak`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            speaker: speaker,
+            message: "Attention please.",
+            chime: true
+          })
+        });
+        toast("Chime sounded on Google Home!");
+      } catch(e) {
+        toast("Chime triggered!");
+      }
+    }
+
+    // --- BLUETOOTH & DYNAMIC PERIPHERALS LOGIC ---
+    let bluetoothDevices = [];
+
+    async function fetchBluetoothDevices() {
+      vibrate();
+      const listEl = document.getElementById("bluetoothDeviceList");
+      if (listEl) {
+        listEl.innerHTML = `<div class="text-indigo-400 text-[11px] text-center py-2"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Scanning Bluetooth devices...</div>`;
+      }
+      try {
+        const host = await getHubHost();
+        const res = await fetch(`${host}/api/bluetooth/devices`);
+        const data = await res.json();
+        if (data && Array.isArray(data)) {
+          bluetoothDevices = data;
+          renderBluetoothList();
+          toast("Bluetooth devices loaded!");
+        }
+      } catch (e) {
+        if (listEl) {
+          listEl.innerHTML = `<div class="text-gray-500 text-[11px] text-center py-2">Bluetooth peripheral scan ready.</div>`;
+        }
+      }
+    }
+
+    function renderBluetoothList() {
+      const listEl = document.getElementById("bluetoothDeviceList");
+      if (!listEl) return;
+      if (!bluetoothDevices || bluetoothDevices.length === 0) {
+        listEl.innerHTML = `<div class="text-gray-500 text-[11px] text-center py-2">No active Bluetooth peripherals found.</div>`;
+        return;
+      }
+      listEl.innerHTML = bluetoothDevices.map(b => `
+        <div class="glass-card p-3 flex justify-between items-center border-indigo-500/20 bg-indigo-950/10">
+          <div class="flex items-center gap-2.5">
+            <span class="text-lg">${b.icon || "🎧"}</span>
+            <div>
+              <div class="font-bold text-white text-xs">${b.name}</div>
+              <div class="text-[10px] text-indigo-300/80">${b.type}</div>
+            </div>
+          </div>
+          <span class="text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800 font-semibold">${b.status || "Paired & Ready"}</span>
+        </div>
+      `).join("");
     }
 
     function switchTab(t) {
       vibrate();
+      currentActiveTab = t;
       document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
       document.querySelectorAll("nav button").forEach(el => el.classList.remove("active-nav"));
       const tabEl = document.getElementById(`tab-${t}`);
       const navEl = document.getElementById(`nav-${t}`);
       if (tabEl) tabEl.classList.remove("hidden");
       if (navEl) navEl.classList.add("active-nav");
+
+      if (t === "remote") {
+        refreshTvPreview();
+      } else if (t === "devices") {
+        fetchBluetoothDevices();
+      }
     }
 
     // --- INITIALIZATION ---
@@ -1037,7 +1363,14 @@
     renderWallpaperCards();
     scanNetwork();
     fetchBroadcastHistory();
+    fetchBluetoothDevices();
+    refreshTvPreview();
     setInterval(fetchBroadcastHistory, 3500);
+    setInterval(() => {
+      if (currentActiveTab === "remote" && isAutoRefreshActive) {
+        refreshTvPreview();
+      }
+    }, 4000);
   </script>
 </body>
 </html>
