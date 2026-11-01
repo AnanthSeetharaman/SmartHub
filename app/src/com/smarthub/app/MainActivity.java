@@ -9,6 +9,8 @@ import android.webkit.WebChromeClient;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -36,7 +38,20 @@ public class MainActivity extends Activity {
         webView.setWebChromeClient(new WebChromeClient());
         webView.addJavascriptInterface(new WebAppInterface(this), "Android");
 
-        webView.loadUrl("file:///android_asset/www/index.html");
+        try {
+            InputStream is = getAssets().open("www/index.html");
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int nRead;
+            byte[] data = new byte[4096];
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            buffer.flush();
+            String html = new String(buffer.toByteArray(), "UTF-8");
+            webView.loadDataWithBaseURL("http://localhost/", html, "text/html", "UTF-8", null);
+        } catch (Exception e) {
+            webView.loadUrl("http://192.168.1.8:8088");
+        }
     }
 
     @Override
