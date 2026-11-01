@@ -594,12 +594,16 @@
     ];
 
     async function getHubHost() {
+      return activeHubHost;
+    }
+
+    async function probeHubHost() {
       const candidates = ["http://192.168.1.8:8088", "http://127.0.0.1:8088"];
       for (const h of candidates) {
         try {
           const controller = new AbortController();
-          const t = setTimeout(() => controller.abort(), 1200);
-          const r = await fetch(`${h}/api/devices`, { signal: controller.signal });
+          const t = setTimeout(() => controller.abort(), 1000);
+          const r = await fetch(`${h}/api/ping`, { signal: controller.signal });
           clearTimeout(t);
           if (r.ok) {
             activeHubHost = h;
@@ -609,6 +613,7 @@
       }
       return activeHubHost;
     }
+    probeHubHost();
 
     function sendSamsungDirect(ip, key) {
       return new Promise((resolve) => {
@@ -744,7 +749,7 @@
         const data = await res.json();
         if (data && data.length) {
           devices = data;
-          selectedDevice = devices.find(d => d.ip === "192.168.1.10") || devices[0];
+          selectedDevice = devices.find(d => d.ip === "192.168.1.100") || devices.find(d => d.is_tv) || devices[0];
           renderDeviceCarousel();
           toast("Devices refreshed!");
         }
@@ -755,7 +760,7 @@
 
     async function sendKey(samsungKey, adbKey) {
       vibrate();
-      if (selectedDevice.ip === "192.168.1.10" || (selectedDevice.port === 8001 && samsungKey)) {
+      if (selectedDevice.ip === "192.168.1.10") {
         const directSuccess = await sendSamsungDirect(selectedDevice.ip, samsungKey);
         if (directSuccess) {
           toast(`Sent ${samsungKey}`);
@@ -764,17 +769,21 @@
       }
       try {
         const host = await getHubHost();
-        await fetch(`${host}/api/remote/send`, {
+        const res = await fetch(`${host}/api/remote/send`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ip: selectedDevice.ip,
-            port: selectedDevice.port || 8001,
+            port: selectedDevice.port || 8009,
             key_samsung: samsungKey,
             key_adb: adbKey
           })
         });
-        toast(`Sent ${samsungKey}`);
+        const data = await res.json();
+        if (samsungKey === "KEY_VOLUP") toast("Volume Up ▲");
+        else if (samsungKey === "KEY_VOLDOWN") toast("Volume Down ▼");
+        else if (samsungKey === "KEY_MUTE") toast(data.muted ? "Muted 🔇" : "Unmuted 🔊");
+        else toast(`Sent ${samsungKey}`);
       } catch (e) {
         toast(`Sent ${samsungKey}`);
       }
@@ -782,7 +791,7 @@
 
     async function triggerScreenOff() {
       vibrate(40);
-      if (selectedDevice.ip === "192.168.1.10" || selectedDevice.port === 8001) {
+      if (selectedDevice.ip === "192.168.1.10") {
         await sendSamsungDirect(selectedDevice.ip, "KEY_TOOLS");
         setTimeout(async () => {
           await sendSamsungDirect(selectedDevice.ip, "KEY_ENTER");
@@ -792,12 +801,13 @@
       }
       try {
         const host = await getHubHost();
-        await fetch(`${host}/api/screen/off`, {
+        const r = await fetch(`${host}/api/screen/off`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ip: selectedDevice.ip, port: selectedDevice.port || 8001 })
+          body: JSON.stringify({ ip: selectedDevice.ip, port: selectedDevice.port || 8009 })
         });
-        toast("Screen turned OFF!");
+        const data = await r.json();
+        toast(data.message || "Screen turned OFF!");
       } catch (e) {
         toast("Screen off dispatched");
       }
@@ -805,19 +815,20 @@
 
     async function triggerScreenOn() {
       vibrate(20);
-      if (selectedDevice.ip === "192.168.1.10" || selectedDevice.port === 8001) {
+      if (selectedDevice.ip === "192.168.1.10") {
         await sendSamsungDirect(selectedDevice.ip, "KEY_INFO");
         toast("Screen illuminated ON!");
         return;
       }
       try {
         const host = await getHubHost();
-        await fetch(`${host}/api/screen/on`, {
+        const r = await fetch(`${host}/api/screen/on`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ip: selectedDevice.ip, port: selectedDevice.port || 8001 })
+          body: JSON.stringify({ ip: selectedDevice.ip, port: selectedDevice.port || 8009 })
         });
-        toast("Screen turned ON!");
+        const data = await r.json();
+        toast(data.message || "Screen illuminated ON!");
       } catch (e) {
         toast("Wake dispatched");
       }
@@ -825,21 +836,20 @@
 
     async function playYouTube() {
       vibrate();
-      const val = document.getElementById("ytInput").value;
+      const val = document.getElementById("ytInput").value.trim();
       if (!val) return;
-      if (window.Android && window.Android.sendDialPlay) {
-        window.Android.sendDialPlay(selectedDevice.ip, 8080, val);
-        toast("Streaming to TV...");
-      } else {
-        try {
-          const host = await getHubHost();
-          await fetch(`${host}/api/youtube/play`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ip: selectedDevice.ip, video_url: val })
-          });
-          toast("Streaming to TV...");
-        } catch (e) {}
+      toast("Streaming to TV...");
+      try {
+        const host = await getHubHost();
+        const r = await fetch(`${host}/api/youtube/play`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip: selectedDevice.ip, video_url: val })
+        });
+        const data = await r.json();
+        toast(data.message || "Streaming to TV...");
+      } catch (e) {
+        toast("Stream dispatched to TV");
       }
     }
 
@@ -850,19 +860,18 @@
 
     async function stopYouTube() {
       vibrate();
-      if (window.Android && window.Android.sendDialStop) {
-        window.Android.sendDialStop(selectedDevice.ip, 8080);
-      } else {
-        try {
-          const host = await getHubHost();
-          await fetch(`${host}/api/youtube/stop`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ip: selectedDevice.ip })
-          });
-        } catch (e) {}
+      try {
+        const host = await getHubHost();
+        const r = await fetch(`${host}/api/youtube/stop`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip: selectedDevice.ip })
+        });
+        const data = await r.json();
+        toast(data.message || "Playback stopped");
+      } catch (e) {
+        toast("Stopped playback");
       }
-      toast("Stopped playback");
     }
 
     // --- WALLPAPERS & THEMES LOGIC ---
