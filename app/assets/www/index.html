@@ -1114,9 +1114,17 @@
       }
     }
 
-    function dismissBroadcastBanner() {
+    async function dismissBroadcastBanner() {
       const banner = document.getElementById("liveBroadcastBanner");
       if (banner) banner.classList.add("hidden");
+      try {
+        const host = await getHubHost();
+        fetch(`${host}/api/broadcast/dismiss`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip: selectedDevice.ip })
+        });
+      } catch(e) {}
     }
 
     async function clearBroadcasts() {
