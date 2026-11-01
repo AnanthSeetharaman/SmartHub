@@ -1,0 +1,68 @@
+name: Build SmartHub APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Compile and Package APK
+      run: |
+        SDK_DIR=$ANDROID_HOME
+        BUILD_TOOLS_DIR=$(ls -d $SDK_DIR/build-tools/* | sort -V | tail -n 1)
+        PLATFORM_JAR=$(ls -d $SDK_DIR/platforms/android-*/android.jar | sort -V | tail -n 1)
+
+        mkdir -p build/res_compiled build/classes build/gen dist
+
+        # 1. Compile resources
+        $BUILD_TOOLS_DIR/aapt2 compile app/res/values/strings.xml -o build/res_compiled/
+        $BUILD_TOOLS_DIR/aapt2 compile app/res/drawable/ic_launcher.png -o build/res_compiled/
+
+        # 2. Link APK
+        $BUILD_TOOLS_DIR/aapt2 link -I $PLATFORM_JAR \
+          --manifest app/AndroidManifest.xml \
+          -A app/assets \
+          -o build/unaligned.apk \
+          --java build/gen \
+          build/res_compiled/*.flat \
+          --auto-add-overlay
+
+        # 3. Compile Java
+        javac -cp $PLATFORM_JAR -d build/classes -source 17 -target 17 $(find app/src build/gen -name "*.java")
+
+        # 4. Dex
+        $BUILD_TOOLS_DIR/d8 --output build/ --lib $PLATFORM_JAR $(find build/classes -name "*.class")
+
+        # 5. Add dex to APK
+        cd build && jar -uf unaligned.apk classes.dex && cd ..
+
+        # 6. Align
+        $BUILD_TOOLS_DIR/zipalign -f -p 4 build/unaligned.apk build/aligned.apk
+
+        # 7. Sign with debug key
+        keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=SmartHub, OU=Dev, O=OSS, L=Local, S=State, C=US"
+        $BUILD_TOOLS_DIR/apksigner sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android --ks-key-alias androiddebugkey --out dist/SmartHub.apk build/aligned.apk
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: SmartHub-APK
+        path: dist/SmartHub.apk

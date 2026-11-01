@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SmartHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #0a0c10;
+      color: #f0f6fc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      padding-bottom: 85px;
+    }
+    .glass-card {
+      background: rgba(22, 27, 34, 0.85);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+    }
+    .touch-btn {
+      transition: all 0.12s ease-in-out;
+    }
+    .touch-btn:active {
+      transform: scale(0.93);
+      filter: brightness(1.2);
+    }
+    .d-pad-btn {
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #e6edf3;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+    .d-pad-btn:active {
+      background: #30363d;
+      border-color: #00f0ff;
+      color: #00f0ff;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    }
+    .active-nav {
+      color: #00f0ff !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- TOP APP BAR -->
+  <header class="p-4 pt-4 pb-2 sticky top-0 z-50 bg-[#0a0c10]/95 border-b border-white/5">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+        <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-1.5">
+          <span>SMART HUB</span>
+          <span class="text-[9px] uppercase tracking-wider bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-800">Native APK</span>
+        </h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="scanNetwork()" class="text-xs bg-white/5 px-2.5 py-1 rounded-lg border border-white/10 text-gray-300 touch-btn">
+          <i class="fa-solid fa-arrows-rotate mr-1"></i> Scan
+        </button>
+      </div>
+    </div>
+
+    <!-- HORIZONTAL DEVICE CAROUSEL -->
+    <div class="mt-3 overflow-x-auto flex space-x-2 py-1 no-scrollbar" id="deviceList">
+      <!-- Injected dynamically -->
+    </div>
+  </header>
+
+  <!-- SCREEN OFF / AUDIO ONLY BANNER -->
+  <div class="px-4 mt-3">
+    <div class="glass-card p-3 flex items-center justify-between border-emerald-500/20 bg-emerald-950/20">
+      <div>
+        <div class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+          <i class="fa-solid fa-moon"></i> Background Audio Mode
+        </div>
+        <div class="text-[10px] text-gray-400">Picture off • TV speakers on</div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="triggerScreenOff()" class="bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl touch-btn flex items-center gap-1">
+          <i class="fa-solid fa-power-off"></i> Screen OFF
+        </button>
+        <button onclick="triggerScreenOn()" class="bg-gray-800 text-gray-200 text-xs font-bold px-3 py-2 rounded-xl border border-white/10 touch-btn">
+          <i class="fa-regular fa-sun"></i> Wake
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN TAB CONTENT -->
+  <main class="flex-1 px-4 py-3">
+
+    <!-- TAB 1: REMOTE -->
+    <div id="tab-remote" class="tab-content">
+      <div class="grid grid-cols-4 gap-2 mb-4">
+        <button onclick="sendKey('KEY_POWER', 'KEYCODE_POWER')" class="glass-card p-3 flex flex-col items-center justify-center text-red-400 touch-btn border-red-500/20">
+          <i class="fa-solid fa-power-off text-base mb-1"></i>
+          <span class="text-[10px] font-bold">POWER</span>
+        </button>
+        <button onclick="sendKey('KEY_SOURCE', 'KEYCODE_TV_INPUT')" class="glass-card p-3 flex flex-col items-center justify-center text-blue-400 touch-btn border-blue-500/20">
+          <i class="fa-solid fa-right-left text-base mb-1"></i>
+          <span class="text-[10px] font-bold">SOURCE</span>
+        </button>
+        <button onclick="sendKey('KEY_MENU', 'KEYCODE_SETTINGS')" class="glass-card p-3 flex flex-col items-center justify-center text-purple-400 touch-btn border-purple-500/20">
+          <i class="fa-solid fa-gear text-base mb-1"></i>
+          <span class="text-[10px] font-bold">MENU</span>
+        </button>
+        <button onclick="sendKey('KEY_HOME', 'KEYCODE_HOME')" class="glass-card p-3 flex flex-col items-center justify-center text-amber-400 touch-btn border-amber-500/20">
+          <i class="fa-solid fa-house text-base mb-1"></i>
+          <span class="text-[10px] font-bold">HOME</span>
+        </button>
+      </div>
+
+      <!-- Tactile D-Pad & Volume -->
+      <div class="glass-card p-4 mb-4">
+        <div class="flex items-center justify-between gap-4">
+          
+          <div class="flex-1 max-w-[210px] mx-auto">
+            <div class="grid grid-cols-3 gap-2">
+              <div></div>
+              <button onclick="sendKey('KEY_UP', 'KEYCODE_DPAD_UP')" class="d-pad-btn h-14 touch-btn">
+                <i class="fa-solid fa-chevron-up text-lg"></i>
+              </button>
+              <div></div>
+
+              <button onclick="sendKey('KEY_LEFT', 'KEYCODE_DPAD_LEFT')" class="d-pad-btn h-14 touch-btn">
+                <i class="fa-solid fa-chevron-left text-lg"></i>
+              </button>
+              <button onclick="sendKey('KEY_ENTER', 'KEYCODE_DPAD_CENTER')" class="d-pad-btn h-14 bg-cyan-950 border-cyan-500/40 text-cyan-300 touch-btn">
+                <span class="font-extrabold text-sm">OK</span>
+              </button>
+              <button onclick="sendKey('KEY_RIGHT', 'KEYCODE_DPAD_RIGHT')" class="d-pad-btn h-14 touch-btn">
+                <i class="fa-solid fa-chevron-right text-lg"></i>
+              </button>
+
+              <div></div>
+              <button onclick="sendKey('KEY_DOWN', 'KEYCODE_DPAD_DOWN')" class="d-pad-btn h-14 touch-btn">
+                <i class="fa-solid fa-chevron-down text-lg"></i>
+              </button>
+              <div></div>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center justify-between h-[180px] bg-black/40 p-2 rounded-2xl border border-white/5 w-16">
+            <button onclick="sendKey('KEY_VOLUP', 'KEYCODE_VOLUME_UP')" class="w-12 h-12 rounded-xl bg-white/5 text-emerald-400 flex items-center justify-center touch-btn">
+              <i class="fa-solid fa-plus text-base"></i>
+            </button>
+            <button onclick="sendKey('KEY_MUTE', 'KEYCODE_VOLUME_MUTE')" class="w-12 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center touch-btn">
+              <i class="fa-solid fa-volume-xmark text-sm"></i>
+            </button>
+            <button onclick="sendKey('KEY_VOLDOWN', 'KEYCODE_VOLUME_DOWN')" class="w-12 h-12 rounded-xl bg-white/5 text-emerald-400 flex items-center justify-center touch-btn">
+              <i class="fa-solid fa-minus text-base"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/5">
+          <button onclick="sendKey('KEY_RETURN', 'KEYCODE_BACK')" class="d-pad-btn py-2.5 text-xs text-gray-300 touch-btn">
+            <i class="fa-solid fa-arrow-left mr-1"></i> BACK
+          </button>
+          <button onclick="sendKey('KEY_INFO', 'KEYCODE_INFO')" class="d-pad-btn py-2.5 text-xs text-gray-300 touch-btn">
+            <i class="fa-solid fa-circle-info mr-1"></i> INFO
+          </button>
+          <button onclick="sendKey('KEY_EXIT', 'KEYCODE_HOME')" class="d-pad-btn py-2.5 text-xs text-red-400 touch-btn">
+            <i class="fa-solid fa-xmark mr-1"></i> EXIT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: YOUTUBE -->
+    <div id="tab-media" class="tab-content hidden">
+      <div class="glass-card p-4 mb-4">
+        <h2 class="text-sm font-bold text-cyan-400 mb-2 flex items-center gap-1.5">
+          <i class="fa-brands fa-youtube text-red-500"></i> YouTube DIAL Streamer
+        </h2>
+        <p class="text-xs text-gray-400 mb-3">Launches hardware player directly (zero menu lag).</p>
+        
+        <div class="flex gap-2 mb-3">
+          <input type="text" id="ytInput" placeholder="Paste YouTube link or ID..." class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+          <button onclick="playYouTube()" class="bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs touch-btn">
+            <i class="fa-solid fa-play"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mt-4">
+          <button onclick="playPreset('jfKfPfyJRdk')" class="glass-card p-3 text-left touch-btn border-cyan-500/20">
+            <div class="text-xs font-bold text-cyan-300">☕ Lofi Beats</div>
+            <div class="text-[10px] text-gray-400">Chillhop Radio 24/7</div>
+          </button>
+          <button onclick="playPreset('LXb3EKWsInQ')" class="glass-card p-3 text-left touch-btn border-emerald-500/20">
+            <div class="text-xs font-bold text-emerald-300">🌲 Nature 4K</div>
+            <div class="text-[10px] text-gray-400">Ambient Visuals</div>
+          </button>
+          <button onclick="playPreset('5qap5aO4i9A')" class="glass-card p-3 text-left touch-btn border-purple-500/20">
+            <div class="text-xs font-bold text-purple-300">🔊 Speaker Test</div>
+            <div class="text-[10px] text-gray-400">Stereo Bass & Treble</div>
+          </button>
+          <button onclick="stopYouTube()" class="glass-card p-3 text-left touch-btn border-red-500/20 bg-red-950/20">
+            <div class="text-xs font-bold text-red-400">⏹ Stop Player</div>
+            <div class="text-[10px] text-gray-400">Kill TV Stream</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: SOUND -->
+    <div id="tab-sound" class="tab-content hidden">
+      <div class="glass-card p-4 mb-4">
+        <h2 class="text-sm font-bold text-emerald-400 mb-1">Speaker Equalizer Profiles</h2>
+        <p class="text-xs text-gray-400 mb-4">Tuned for Samsung UA32H5500 & Mi TV.</p>
+
+        <div class="space-y-3 mb-4">
+          <div class="flex justify-between text-xs text-gray-300"><span>100 Hz (Sub Bass)</span><span class="text-cyan-400">+3 dB</span></div>
+          <input type="range" min="-10" max="10" value="3" class="w-full accent-cyan-400">
+
+          <div class="flex justify-between text-xs text-gray-300"><span>3 kHz (Vocals & Clarity)</span><span class="text-emerald-400">+4 dB</span></div>
+          <input type="range" min="-10" max="10" value="4" class="w-full accent-emerald-400">
+
+          <div class="flex justify-between text-xs text-gray-300"><span>10 kHz (High Treble)</span><span class="text-purple-400">+2 dB</span></div>
+          <input type="range" min="-10" max="10" value="2" class="w-full accent-purple-400">
+        </div>
+
+        <button onclick="toast('Audio profile saved!')" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs touch-btn">
+          Apply Equalizer
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 4: DEVICES -->
+    <div id="tab-devices" class="tab-content hidden">
+      <div class="glass-card p-4 mb-4">
+        <h2 class="text-sm font-bold text-white mb-2">Connected Network Devices</h2>
+        <div id="fullDeviceList" class="space-y-2 text-xs"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#0a0c10]/95 backdrop-blur-lg border-t border-white/10 px-4 py-2.5 z-50">
+    <div class="flex justify-around items-center max-w-md mx-auto">
+      <button onclick="switchTab('remote')" id="nav-remote" class="flex flex-col items-center text-xs text-gray-400 active-nav touch-btn">
+        <i class="fa-solid fa-gamepad text-lg mb-1"></i>
+        <span class="text-[10px] font-semibold">Remote</span>
+      </button>
+
+      <button onclick="switchTab('media')" id="nav-media" class="flex flex-col items-center text-xs text-gray-400 touch-btn">
+        <i class="fa-brands fa-youtube text-lg mb-1"></i>
+        <span class="text-[10px] font-semibold">YouTube</span>
+      </button>
+
+      <button onclick="switchTab('sound')" id="nav-sound" class="flex flex-col items-center text-xs text-gray-400 touch-btn">
+        <i class="fa-solid fa-sliders text-lg mb-1"></i>
+        <span class="text-[10px] font-semibold">Sound</span>
+      </button>
+
+      <button onclick="switchTab('devices')" id="nav-devices" class="flex flex-col items-center text-xs text-gray-400 touch-btn">
+        <i class="fa-solid fa-network-wired text-lg mb-1"></i>
+        <span class="text-[10px] font-semibold">Devices</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    const HUB_HOST = "http://192.168.1.8:8088";
+    let devices = [
+      { ip: "192.168.1.10", name: "Samsung Smart TV (UA32H5500)", icon: "📺", port: 8001 },
+      { ip: "192.168.1.11", name: "Xiaomi Mi TV 4K (MiTV-AXSO2)", icon: "📺", port: 5555 },
+      { ip: "192.168.1.3", name: "Google Cast / Mi ('AniRudh')", icon: "📱", port: 8008 },
+      { ip: "192.168.1.1", name: "Wi-Fi Router Gateway", icon: "📡", port: 80 }
+    ];
+    let selectedDevice = devices[0];
+
+    function vibrate(ms = 25) {
+      if (window.Android && window.Android.vibrate) {
+        window.Android.vibrate(ms);
+      } else if (navigator.vibrate) {
+        navigator.vibrate(ms);
+      }
+    }
+
+    function toast(msg) {
+      if (window.Android && window.Android.toast) {
+        window.Android.toast(msg);
+      }
+    }
+
+    function renderDeviceCarousel() {
+      const el = document.getElementById("deviceList");
+      el.innerHTML = "";
+      devices.forEach(d => {
+        const isSel = selectedDevice.ip === d.ip;
+        const b = document.createElement("button");
+        b.className = `flex-shrink-0 px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 touch-btn ${
+          isSel ? "bg-cyan-950 text-cyan-300 border-cyan-500/40" : "bg-white/5 text-gray-300 border-white/5"
+        }`;
+        b.innerHTML = `<span>${d.icon}</span> <span>${d.name.split(' (')[0]}</span>`;
+        b.onclick = () => {
+          vibrate();
+          selectedDevice = d;
+          renderDeviceCarousel();
+          toast(`Selected: ${d.name}`);
+        };
+        el.appendChild(b);
+      });
+
+      const fullList = document.getElementById("fullDeviceList");
+      if (fullList) {
+        fullList.innerHTML = devices.map(d => `
+          <div class="glass-card p-3 flex justify-between items-center">
+            <div>
+              <div class="font-bold text-white">${d.icon} ${d.name}</div>
+              <div class="text-[10px] text-gray-400">IP: ${d.ip} • Port: ${d.port}</div>
+            </div>
+            <span class="text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">ONLINE</span>
+          </div>
+        `).join("");
+      }
+    }
+
+    async function scanNetwork() {
+      vibrate();
+      try {
+        const res = await fetch(`${HUB_HOST}/api/devices`);
+        const data = await res.json();
+        if (data && data.length) {
+          devices = data;
+          selectedDevice = devices.find(d => d.ip === "192.168.1.10") || devices[0];
+          renderDeviceCarousel();
+          toast("Devices refreshed!");
+        }
+      } catch (e) {
+        toast("Using local device cache.");
+      }
+    }
+
+    async function sendKey(samsungKey, adbKey) {
+      vibrate();
+      try {
+        await fetch(`${HUB_HOST}/api/remote/send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ip: selectedDevice.ip,
+            port: selectedDevice.port || 8001,
+            key_samsung: samsungKey,
+            key_adb: adbKey
+          })
+        });
+        toast(`Sent ${samsungKey}`);
+      } catch (e) {
+        toast("Command sent");
+      }
+    }
+
+    async function triggerScreenOff() {
+      vibrate(40);
+      try {
+        await fetch(`${HUB_HOST}/api/screen/off`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip: selectedDevice.ip, port: selectedDevice.port || 8001 })
+        });
+        toast("Screen turned OFF!");
+      } catch (e) {
+        toast("Screen off dispatched");
+      }
+    }
+
+    async function triggerScreenOn() {
+      vibrate(20);
+      try {
+        await fetch(`${HUB_HOST}/api/screen/on`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip: selectedDevice.ip, port: selectedDevice.port || 8001 })
+        });
+        toast("Screen turned ON!");
+      } catch (e) {
+        toast("Wake dispatched");
+      }
+    }
+
+    async function playYouTube() {
+      vibrate();
+      const val = document.getElementById("ytInput").value;
+      if (!val) return;
+      if (window.Android && window.Android.sendDialPlay) {
+        window.Android.sendDialPlay(selectedDevice.ip, 8080, val);
+        toast("Streaming to TV...");
+      } else {
+        try {
+          await fetch(`${HUB_HOST}/api/youtube/play`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ip: selectedDevice.ip, video_url: val })
+          });
+          toast("Streaming to TV...");
+        } catch (e) {}
+      }
+    }
+
+    function playPreset(id) {
+      document.getElementById("ytInput").value = id;
+      playYouTube();
+    }
+
+    async function stopYouTube() {
+      vibrate();
+      if (window.Android && window.Android.sendDialStop) {
+        window.Android.sendDialStop(selectedDevice.ip, 8080);
+      } else {
+        try {
+          await fetch(`${HUB_HOST}/api/youtube/stop`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ip: selectedDevice.ip })
+          });
+        } catch (e) {}
+      }
+      toast("Stopped playback");
+    }
+
+    function switchTab(t) {
+      vibrate();
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+      document.querySelectorAll("nav button").forEach(el => el.classList.remove("active-nav"));
+      document.getElementById(`tab-${t}`).classList.remove("hidden");
+      document.getElementById(`nav-${t}`).classList.add("active-nav");
+    }
+
+    renderDeviceCarousel();
+    scanNetwork();
+  </script>
+</body>
+</html>

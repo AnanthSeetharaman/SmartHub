@@ -1,0 +1,18 @@
+# Android / Gradle / Build artifacts
+build/
+*.class
+*.dex
+*.flat
+*.keystore
+debug.keystore
+
+# Distribution (optional - keep or ignore)
+dist/*.aligned.apk
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+*.iml
+.vscode/
